@@ -1,0 +1,5 @@
+_target_: src.data.diff_datamodule.DIFF_Datamodule
+batch_size: 32 # Needs to be divisible by the number of devices (e.g., if in a distributed setup)
+train_val_test_split: [55_000, 5_000, 10_000]
+num_workers: 0
+pin_memory: False
