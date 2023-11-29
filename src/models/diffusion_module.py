@@ -59,7 +59,7 @@ class DiffusionModule(LightningModule):
         Model is U-Net with added positional encodings and self-attention layers.
         """
         # print(type(t))
-        print('xxxxxxxxxxxxxxxxxx:', x.shape)
+        # print('xxxxxxxxxxxxxxxxxx:', x.shape)
         x1 = self.inc(x)
         x2 = self.down1(x1) + self.pos_encoding(t, 128, 16)
         x3 = self.down2(x2) + self.pos_encoding(t, 256, 8)
