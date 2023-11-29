@@ -96,9 +96,9 @@ class DIFF_Datamodule(LightningDataModule):
             self.input_seq = ((data / 255.0) * 2.0) - 1.0
             print(f"input_seq_shape: {self.input_seq.shape}")
             self.input_seq = self.input_seq.moveaxis(3, 1)
-            
-            self.data_train, self.data_val, self.data_test = random_split(
-                dataset=data,
+            print(f"input_seq_shape after: {self.input_seq.shape}")
+            self.data_train, self.data_val, _ = random_split(
+                dataset=self.input_seq,
                 lengths=self.hparams.train_val_test_split,
                 generator=torch.Generator().manual_seed(42),
             )
@@ -171,7 +171,7 @@ if __name__ == "__main__":
         
         
         #* Plot batch of image
-        imshow(torchvision.utils.make_grid(bx))
+        # imshow(torchvision.utils.make_grid(bx))
     
     @hydra.main(version_base = "1.3", config_path=config_path, config_name="diff_dataset.yaml")
     def main(cfg: DictConfig):
