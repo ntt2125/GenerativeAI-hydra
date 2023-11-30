@@ -126,6 +126,8 @@ class DiffusionModule(LightningModule):
 
     def validation_step(self, batch, batch_idx):
         loss = self.get_loss(batch, batch_idx)
+        
+        
         self.log("val/loss", loss)
         return
 

@@ -1,0 +1,61 @@
+{
+    "os": "Linux-5.15.120+-x86_64-with-glibc2.35",
+    "python": "3.10.12",
+    "heartbeatAt": "2023-11-29T19:34:55.502238",
+    "startedAt": "2023-11-29T19:34:54.876243",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "trainer=gpu",
+        "data.num_workers=10",
+        "trainer.max_epochs=2"
+    ],
+    "state": "running",
+    "program": "-m src.train",
+    "codePathLocal": null,
+    "git": {
+        "remote": "https://github.com/ntt2125/diffusion-hydra.git",
+        "commit": "0e9eda14973166ac75512a678c6a4f420cc42787"
+    },
+    "email": null,
+    "root": "/content/diffusion-hydra",
+    "host": "70e11ad14371",
+    "username": "root",
+    "executable": "/usr/bin/python3",
+    "cpu_count": 1,
+    "cpu_count_logical": 2,
+    "cpu_freq": {
+        "current": 2199.998,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2199.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2199.998,
+            "min": 0.0,
+            "max": 0.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 78.1898422241211,
+            "used": 26.972591400146484
+        }
+    },
+    "gpu": "Tesla T4",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "Tesla T4",
+            "memory_total": 16106127360
+        }
+    ],
+    "memory": {
+        "total": 12.6783447265625
+    }
+}

@@ -1,0 +1,155 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    python_version: 3.10.12
+    cli_version: 0.16.0
+    framework: huggingface
+    huggingface_version: 4.35.2
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1701286494.880641
+    t:
+      1:
+      - 1
+      - 11
+      - 12
+      - 41
+      - 49
+      - 50
+      - 55
+      2:
+      - 1
+      - 11
+      - 12
+      - 41
+      - 49
+      - 50
+      - 55
+      3:
+      - 2
+      - 7
+      - 23
+      4: 3.10.12
+      5: 0.16.0
+      6: 4.35.2
+      8:
+      - 5
+      13: linux-x86_64
+    m:
+    - 1: trainer/global_step
+      6:
+      - 3
+    - 1: train/loss
+      5: 1
+      6:
+      - 1
+    - 1: epoch
+      5: 1
+      6:
+      - 1
+    - 1: val/loss
+      5: 1
+      6:
+      - 1
+model:
+  desc: null
+  value:
+    _target_: src.models.diffusion_module.DiffusionModule
+    in_size: 1024
+    t_range: 1000
+    img_depth: 1
+    beta_small: 0.0001
+    beta_large: 0.02
+    optimizer:
+      _target_: torch.optim.Adam
+      _partial_: true
+      lr: 0.001
+      weight_decay: 0.0
+    compile: false
+model/params/total:
+  desc: null
+  value: 12919041
+model/params/trainable:
+  desc: null
+  value: 12919041
+model/params/non_trainable:
+  desc: null
+  value: 0
+data:
+  desc: null
+  value:
+    _target_: src.data.diff_datamodule.DIFF_Datamodule
+    batch_size: 32
+    train_val_test_split:
+    - 60000
+    - 10000
+    - 0
+    num_workers: 10
+    pin_memory: false
+trainer:
+  desc: null
+  value:
+    _target_: lightning.pytorch.trainer.Trainer
+    default_root_dir: ${paths.output_dir}
+    min_epochs: 1
+    max_epochs: 2
+    accelerator: gpu
+    devices: 1
+    check_val_every_n_epoch: 1
+    deterministic: false
+callbacks:
+  desc: null
+  value:
+    model_checkpoint:
+      _target_: lightning.pytorch.callbacks.ModelCheckpoint
+      dirpath: ${paths.output_dir}/checkpoints
+      filename: epoch_{epoch:03d}
+      monitor: val/loss
+      verbose: false
+      save_last: true
+      save_top_k: 1
+      mode: max
+      auto_insert_metric_name: false
+      save_weights_only: false
+      every_n_train_steps: null
+      train_time_interval: null
+      every_n_epochs: null
+      save_on_train_epoch_end: null
+    early_stopping:
+      _target_: lightning.pytorch.callbacks.EarlyStopping
+      monitor: train/loss
+      min_delta: 0.0
+      patience: 10
+      verbose: false
+      mode: max
+      strict: true
+      check_finite: true
+      stopping_threshold: null
+      divergence_threshold: null
+      check_on_train_epoch_end: null
+    model_summary:
+      _target_: lightning.pytorch.callbacks.RichModelSummary
+      max_depth: -1
+    rich_progress_bar:
+      _target_: lightning.pytorch.callbacks.RichProgressBar
+extras:
+  desc: null
+  value:
+    ignore_warnings: false
+    enforce_tags: true
+    print_config: true
+task_name:
+  desc: null
+  value: train
+tags:
+  desc: null
+  value:
+  - dev
+ckpt_path:
+  desc: null
+  value: null
+seed:
+  desc: null
+  value: null
