@@ -16,8 +16,15 @@ output_path = str(path/"output")
     
 print("paths", path, config_path, output_path)
 
+def print_min_max(batch_tensor):
+        min_value = torch.min(batch_tensor)
+        max_value = torch.max(batch_tensor)
+        
+        print(f'min: {min_value.item()}')
+        print(f'max: {max_value.item()}')
+
 def infer(cfg):
-    model = DiffusionModule.load_from_checkpoint(checkpoint_path='/home/ntthong/NTT/2023_learning_skill/Diffusion_Model/diffusion-hydra/logs/diff_2/checkpoints/epoch_000.ckpt')
+    model = DiffusionModule.load_from_checkpoint(checkpoint_path='/home/ntthong/NTT/2023_learning_skill/Diffusion_Model/diffusion-hydra/logs/last.ckpt')
     
     model = model.cpu()
     gif_shape = [3, 3]
@@ -39,7 +46,11 @@ def infer(cfg):
     for _ in range(n_hold_final):
         gen_samples.append(x)
     gen_samples = torch.stack(gen_samples, dim=0).moveaxis(2, 4).squeeze(-1)
+    print_min_max(gen_samples)
+    
     gen_samples = (gen_samples.clamp(-1, 1) + 1) / 2
+    
+    
     
     gen_samples = (gen_samples * 255).type(torch.uint8)
     gen_samples = gen_samples.reshape(-1, gif_shape[0], gif_shape[1], 32, 32, 1)
@@ -54,7 +65,7 @@ def infer(cfg):
     gen_samples = stack_samples(gen_samples, 2)
     gen_samples = gen_samples.squeeze()
     imageio.mimsave(
-        "pred.gif",
+        "pred_1.gif",
         list(gen_samples),
         fps=5,
 )

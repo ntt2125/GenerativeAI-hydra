@@ -93,7 +93,14 @@ class DIFF_Datamodule(LightningDataModule):
                 self.depth = 3
                 self.size = 32
             
-            self.input_seq = ((data / 255.0) * 2.0) - 1.0
+            # self.input_seq = ((data / 255.0) * 2.0) - 1.0
+            self.input_seq = (data * 2.0) - 1.0 # (-1.0, 1.0)
+            # min_value = torch.min(self.input_seq)
+            # max_value = torch.max(self.input_seq)
+            
+            # print(f'min: {min_value.item()}')
+            # print(f'max: {max_value.item()}')
+            
             print(f"input_seq_shape: {self.input_seq.shape}")
             self.input_seq = self.input_seq.moveaxis(3, 1)
             print(f"input_seq_shape after: {self.input_seq.shape}")
@@ -139,14 +146,41 @@ if __name__ == "__main__":
     output_path = path / "outputs"
     print("root", path, config_path)
     
-    def imshow(img):
-        img = img.permute(0, 2, 3, 1)
-    
-        # Make a grid of images
-        grid = torchvision.utils.make_grid(img, nrow=8)  # nrow controls the number of images in each row of the grid
+    def print_min_max(batch_tensor):
+        min_value = torch.min(batch_tensor)
+        max_value = torch.max(batch_tensor)
+            
+        print(f'min: {min_value.item()}')
+        print(f'max: {max_value.item()}')
         
-        # Display the grid
-        plt.imshow(grid[:, :, 0], cmap='gray')  # Display the first channel of the grid (grayscale)
+    
+    def get_rand_tensor_with_range(size: tuple, lower_bound: float, upper_bound: float):
+        import torch
+
+        # Generate random numbers between 0 and 1
+        random_numbers = torch.rand(size=size)
+
+        # Specify the range you want (e.g., between 2 and 7)
+        lower_bound = 2
+        upper_bound = 7
+
+        # Scale and shift the random numbers to the desired range
+        random_numbers_in_range = (upper_bound - lower_bound) * random_numbers + lower_bound
+        
+        return random_numbers_in_range
+
+
+
+    
+    def imshow(img):
+        
+        batch_size = img.shape[0]
+        plt.figure(figsize=(8, 8))
+        for i in range(batch_size):
+            plt.subplot(4, 8, i + 1)
+            plt.imshow(img[i].squeeze().numpy(), cmap='gray')
+            plt.axis('off')
+
         plt.show()
     
     def test_datamodule(cfg: DictConfig):
@@ -154,10 +188,16 @@ if __name__ == "__main__":
         datamodule.prepare_data()
         datamodule.setup()
         loader = datamodule.train_dataloader()
+        # print(type(loader))
         
         bx= next(iter(loader))
         
-        # imshow(bx)
+        print(f'type bx: {type(bx)}')
+        
+        print_min_max(bx)
+        
+        
+        imshow(bx)
         
         print("n_batch", len(loader), bx.shape, )
         
@@ -177,5 +217,7 @@ if __name__ == "__main__":
     def main(cfg: DictConfig):
         print(cfg)
         test_datamodule(cfg)
+        # x=get_rand_tensor_with_range((32,1,32,32), 300, 301)
+        # imshow(x)
     
     main()
