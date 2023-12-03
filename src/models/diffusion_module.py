@@ -78,6 +78,7 @@ class DiffusionModule(LightningModule):
         with torch.no_grad():
             if t > 1:
                 z = torch.randn(x.shape)
+                z=z.to(self.device)
             else:
                 z = 0
             e_hat = self.forward(x, t.view(1, 1).repeat(x.shape[0], 1))

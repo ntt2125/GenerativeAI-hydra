@@ -31,7 +31,8 @@ def infer(cfg):
     sample_batch_size = gif_shape[0] * gif_shape[1]
     n_hold_final = 10
 
-    device = ('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
     # Generate samples from denoising process
     gen_samples = []
     # x = torch.randn((sample_batch_size, train_dataset.depth, train_dataset.size, train_dataset.size))
@@ -67,7 +68,7 @@ def infer(cfg):
     gen_samples = gen_samples.squeeze()
     imageio.mimsave(
         "pred_1.gif",
-        list(gen_samples),
+        list(gen_samples.cpu().numpy()),
         fps=5,
 )
 
