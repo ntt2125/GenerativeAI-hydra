@@ -5,7 +5,7 @@ import torch.nn as nn
 from lightning import LightningModule
 from torchmetrics import MaxMetric, MeanMetric
 from torchmetrics.classification.accuracy import Accuracy
-from src.models.components.Simple_Unet_Transformer import *
+from src.models.components.Component_Unet_Transformer import *
 
 class DiffusionModule(LightningModule):
     def __init__(
@@ -13,8 +13,9 @@ class DiffusionModule(LightningModule):
         optimizer: torch.optim.Adam,
         # scheduler: torch.optim.lr_scheduler,
         compile: bool,
+        net: torch.nn.Module,
         in_size: int=1024, # 32 x 32
-        t_range: int = 10000,
+        t_range: int = 1000,
         img_depth: int = 1, # 1 for mnist and 3 for cifar
         beta_small: float = 1e-4,
         beta_large: float = 0.02
@@ -27,51 +28,16 @@ class DiffusionModule(LightningModule):
         self.beta_large = beta_large #Beta_T
         self.t_range = t_range
         self.in_size = in_size
+        self.net = net
 
-        
-        
-        bilinear = True
-        self.inc = DoubleConv(img_depth, 64)
-        self.down1 = Down(64, 128)
-        self.down2 = Down(128, 256)
-        factor = 2 if bilinear else 1
-        self.down3 = Down(256, 512 // factor)
-        self.up1 = Up(512, 256 // factor, bilinear)
-        self.up2 = Up(256, 128 // factor, bilinear)
-        self.up3 = Up(128, 64, bilinear)
-        self.outc = OutConv(64, img_depth)
-        self.sa1 = SAWrapper(256, 8)
-        self.sa2 = SAWrapper(256, 4)
-        self.sa3 = SAWrapper(128, 8)
-
-    def pos_encoding(self, t, channels, embed_size):
-        inv_freq = 1.0 / (
-            10000
-            ** (torch.arange(0, channels, 2, device=self.device).float() / channels)
-        )
-        pos_enc_a = torch.sin(t.repeat(1, channels // 2) * inv_freq)
-        pos_enc_b = torch.cos(t.repeat(1, channels // 2) * inv_freq)
-        pos_enc = torch.cat([pos_enc_a, pos_enc_b], dim=-1)
-        return pos_enc.view(-1, channels, 1, 1).repeat(1, 1, embed_size, embed_size)
 
     def forward(self, x, t):
         """
         Model is U-Net with added positional encodings and self-attention layers.
         """
-        # print(type(t))
-        # print('xxxxxxxxxxxxxxxxxx:', x.shape)
-        x1 = self.inc(x)
-        x2 = self.down1(x1) + self.pos_encoding(t, 128, 16)
-        x3 = self.down2(x2) + self.pos_encoding(t, 256, 8)
-        x3 = self.sa1(x3)
-        x4 = self.down3(x3) + self.pos_encoding(t, 256, 4)
-        x4 = self.sa2(x4)
-        x = self.up1(x4, x3) + self.pos_encoding(t, 128, 8)
-        x = self.sa3(x)
-        x = self.up2(x, x2) + self.pos_encoding(t, 64, 16)
-        x = self.up3(x, x1) + self.pos_encoding(t, 64, 32)
-        output = self.outc(x)
-        return output
+        x = x.to(self.device)
+        t = t.to(self.device)
+        return self.net(x, t)
 
     def beta(self, t):
         return self.beta_small + (t / self.t_range) * (
@@ -107,6 +73,8 @@ class DiffusionModule(LightningModule):
         """
         Corresponds to the inner loop of Algorithm 2 from (Ho et al., 2020).
         """
+        x = x.to(self.device)
+
         with torch.no_grad():
             if t > 1:
                 z = torch.randn(x.shape)
@@ -154,7 +122,7 @@ if __name__=='__main__':
         module = hydra.utils.instantiate(cfg)
         input = 2*torch.rand((32,1,32,32)) - 1
         t = torch.randint(0, 1000, size=(32, 1))
-        
+        # net = module.net
         output = module(input, t)
         print(output.shape)
         

@@ -24,21 +24,22 @@ def print_min_max(batch_tensor):
         print(f'max: {max_value.item()}')
 
 def infer(cfg):
-    model = DiffusionModule.load_from_checkpoint(checkpoint_path='/home/ntthong/NTT/2023_learning_skill/Diffusion_Model/diffusion-hydra/logs/last.ckpt')
+    model = DiffusionModule.load_from_checkpoint(checkpoint_path='/home/ntthong/NTT/2023_learning_skill/Diffusion_Model/diffusion-hydra/logs/train/last.ckpt')
     
-    model = model.cpu()
+    # model = model.cpu()
     gif_shape = [3, 3]
     sample_batch_size = gif_shape[0] * gif_shape[1]
     n_hold_final = 10
 
+    device = ('cuda' if torch.cuda.is_available() else 'cpu')
     # Generate samples from denoising process
     gen_samples = []
     # x = torch.randn((sample_batch_size, train_dataset.depth, train_dataset.size, train_dataset.size))
-    x = torch.randn((sample_batch_size,1 , 32, 32))
+    x = torch.randn((sample_batch_size,1 , 32, 32), device=device)
     # device = torch.device("cuda:0")
     # x = x.to(device=device)
     sample_steps = torch.arange(model.t_range-1, 0, -1)
-    # sample_steps.to(device=device)
+    sample_steps.to(device=device)
     for t in sample_steps:
         x = model.denoise_sample(x, t)
         if t % 50 == 0:
