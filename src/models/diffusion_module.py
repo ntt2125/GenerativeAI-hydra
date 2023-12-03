@@ -6,6 +6,8 @@ from lightning import LightningModule
 from torchmetrics import MaxMetric, MeanMetric
 from torchmetrics.classification.accuracy import Accuracy
 from src.models.components.Component_Unet_Transformer import *
+import imageio
+import wandb
 
 class DiffusionModule(LightningModule):
     def __init__(
@@ -69,6 +71,52 @@ class DiffusionModule(LightningModule):
         )
         return loss
 
+    def infer(self, path: str):
+        gif_shape = [3, 3]
+        sample_batch_size = gif_shape[0] * gif_shape[1]
+        n_hold_final = 10
+
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # Generate samples from denoising process
+        gen_samples = []
+        # x = torch.randn((sample_batch_size, train_dataset.depth, train_dataset.size, train_dataset.size))
+        x = torch.randn((sample_batch_size,1 , 32, 32), device=device)
+        # device = torch.device("cuda:0")
+        # x = x.to(device=device)
+        sample_steps = torch.arange(self.t_range-1, 0, -1)
+        sample_steps.to(device=device)
+        for t in sample_steps:
+            x = self.denoise_sample(x, t)
+            if t % 50 == 0:
+                gen_samples.append(x)
+        for _ in range(n_hold_final):
+            gen_samples.append(x)
+        gen_samples = torch.stack(gen_samples, dim=0).moveaxis(2, 4).squeeze(-1)
+        # print_min_max(gen_samples)
+        
+        gen_samples = (gen_samples.clamp(-1, 1) + 1) / 2
+        
+        
+        
+        gen_samples = (gen_samples * 255).type(torch.uint8)
+        gen_samples = gen_samples.reshape(-1, gif_shape[0], gif_shape[1], 32, 32, 1)
+
+        def stack_samples(gen_samples, stack_dim):
+            gen_samples = list(torch.split(gen_samples, 1, dim=1))
+            for i in range(len(gen_samples)):
+                gen_samples[i] = gen_samples[i].squeeze(1)
+            return torch.cat(gen_samples, dim=stack_dim)
+
+        gen_samples = stack_samples(gen_samples, 2)
+        gen_samples = stack_samples(gen_samples, 2)
+        gen_samples = gen_samples.squeeze()
+        imageio.mimsave(
+            path,
+            list(gen_samples.cpu().numpy()),
+            fps=5,
+        )
+
     def denoise_sample(self, x, t):
         """
         Corresponds to the inner loop of Algorithm 2 from (Ho et al., 2020).
@@ -90,16 +138,19 @@ class DiffusionModule(LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss = self.get_loss(batch, batch_idx)
-        self.log("train/loss", loss)
+        self.log("train/loss", loss, on_step=False, on_epoch=True, prog_bar=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         loss = self.get_loss(batch, batch_idx)
         
         
-        self.log("val/loss", loss)
+        self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=True)
         return
 
+    def on_validation_epoch_end(self) :
+        self.infer(path)
+        wandb.log({"sample": wandb.Image(path)})
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=2e-4)
         return optimizer
