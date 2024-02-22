@@ -20,7 +20,8 @@ class DiffusionModule(LightningModule):
         t_range: int = 1000,
         img_depth: int = 1, # 1 for mnist and 3 for cifar
         beta_small: float = 1e-4,
-        beta_large: float = 0.02
+        beta_large: float = 0.02,
+        path: str = "pre.gif",
         ):
         
         
@@ -31,7 +32,7 @@ class DiffusionModule(LightningModule):
         self.t_range = t_range
         self.in_size = in_size
         self.net = net
-
+        self.path = path
 
     def forward(self, x, t):
         """
@@ -149,6 +150,7 @@ class DiffusionModule(LightningModule):
         return
 
     def on_validation_epoch_end(self) :
+        path = self.path
         self.infer(path)
         wandb.log({"sample": wandb.Image(path)})
     def configure_optimizers(self):

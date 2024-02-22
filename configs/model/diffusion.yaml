@@ -5,6 +5,7 @@ t_range: 1000
 img_depth: 1 # 1 for mnist and 3 for cifar
 beta_small: 0.0001
 beta_large:  0.02
+path: "pred.gif"
 
 net:
   _target_: src.models.components.Simple_Unet_Transformer.SimpleUnetTransformer
